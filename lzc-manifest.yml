@@ -1,0 +1,13 @@
+lzc-sdk-version: 0.1
+name: 代办清单Go
+package: cloud.lazycat.app.todolistgo
+version: 0.0.1
+description: 
+license: https://choosealicense.com/licenses/mit/
+homepage: 
+author: 
+application:
+  subdomain: todolistgo
+  routes:
+    - /=file:///lzcapp/pkg/content/web
+    - /api/=exec://3000,/lzcapp/pkg/content/td-go --db /lzcapp/var/todo.db

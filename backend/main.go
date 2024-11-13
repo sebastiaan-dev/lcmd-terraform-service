@@ -19,6 +19,8 @@ func main() {
 
 	r := gin.Default()
 
+	r.GET("/userinfo", handlers.GetUserInfo)
+
 	r.GET("/todos", handlers.GetTodos)
 	r.POST("/todos", handlers.CreateTodo)
 	r.PUT("/todos/:id", handlers.UpdateTodo)

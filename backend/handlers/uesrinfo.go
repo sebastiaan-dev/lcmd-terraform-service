@@ -32,6 +32,19 @@ type LoginInfo struct {
 	UserRole      string
 }
 
+func Reboot(c *gin.Context) {
+	c.String(200, "now reboot lazycat...")
+	gw, err := gohelper.NewAPIGateway(c.Request.Context())
+	if err != nil {
+		c.AbortWithError(500, err)
+		return
+	}
+	defer gw.Close()
+	gw.Box.Shutdown(c.Request.Context(), &users.ShutdownRequest{
+		Action: users.ShutdownRequest_Reboot,
+	})
+}
+
 func GetUserInfo(c *gin.Context) {
 	ctx := c.Request.Context()
 	gw, err := gohelper.NewAPIGateway(ctx)
@@ -39,6 +52,7 @@ func GetUserInfo(c *gin.Context) {
 		c.AbortWithError(500, err)
 		return
 	}
+	defer gw.Close()
 	var ret struct {
 		CurrentUserInfo LoginInfo
 		AllUserInfos    []*users.UserInfo

@@ -1,4 +1,4 @@
-# Terraform Service
+# LCMD Terraform Service
 
 This repository contains a wrapper over the LZC SDK, exposing it as an API which can be exposed by a Terraform provider.
 

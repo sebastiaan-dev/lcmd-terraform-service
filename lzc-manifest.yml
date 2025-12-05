@@ -1,13 +1,13 @@
-lzc-sdk-version: 0.1
-name: 代办清单Go
-package: cloud.lazycat.app.todolistgo
+name: Terraform Service
+package: cloud.lazycat.app.terraform-service
 version: 0.0.1
-description: 
+description: A Terraform background service to enable provider integration.
 license: https://choosealicense.com/licenses/mit/
 homepage: 
-author: 
+author: Sebastiaan Gerritsen
 application:
-  subdomain: todolistgo
+  subdomain: terraform-service
   routes:
-    - /=file:///lzcapp/pkg/content/web
-    - /api/=exec://3000,/lzcapp/pkg/content/td-go --db /lzcapp/var/todo.db
+    - /api/=exec://9443,/lzcapp/pkg/content/tf-server
+  public_path:
+    - /api

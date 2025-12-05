@@ -27,7 +27,28 @@ devshell:
   dependencies:
     - nodejs
     - npm
-    - go
   setupscript: |
-    export npm_config_registry=https://registry.npmmirror.com
-    export GOPROXY=https://goproxy.cn,direct
+    sh -c 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/main" > /etc/apk/repositories'
+    sh -c 'echo "https://dl-cdn.alpinelinux.org/alpine/v3.19/community" >> /etc/apk/repositories'
+    apk update
+
+    apk add go nodejs npm
+
+    npm install -g corepack
+    corepack enable
+
+    TF_VERSION=1.14.0; \
+    if ! command -v terraform >/dev/null 2>&1 || ! terraform version 2>/dev/null | grep -q "Terraform v$TF_VERSION"; then \
+      wget -q "https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip" && \
+      unzip -o "terraform_${TF_VERSION}_linux_amd64.zip" -d /usr/local/bin/ && \
+      chmod +x /usr/local/bin/terraform && \
+      echo "Installed Terraform $(terraform version | head -n1)"; \
+    else \
+      echo "Terraform v${TF_VERSION} already installed."; \
+    fi
+
+    export GOBIN=$GOPATH/bin
+
+    printf '%s\n' 'provider_installation {' '' '  dev_overrides {' '    "non-existent.nl/edu/lcmd" = "$GOBIN"' '  }' '' '  direct {}' '}' > source.tfrc && export TERRAFORM_CONFIG="$(pwd)/source.tfrc"
+    export TF_LOG=TRACE
+    export GOTOOLCHAIN=auto

@@ -1,6 +1,6 @@
-# 懒猫云应用
+# Terraform Service
 
-本项目是基本 Go + vue3 编写的todolist的demo,用于示范如何创建一个带后端并持久化存储数据的懒猫app
+This repository contains a wrapper over the LZC SDK, exposing it as an API which can be exposed by a Terraform provider.
 
 ## 开发
 

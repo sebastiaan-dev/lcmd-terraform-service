@@ -1,0 +1,7 @@
+{
+  "name": "todolist-go-lzcapp-demo",
+  "packageManager": "yarn@4.12.0",
+  "dependencies": {
+    "@lazycatcloud/lzc-cli": "^1.3.12"
+  }
+}

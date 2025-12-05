@@ -26,3 +26,7 @@ coverage
 
 *.lpk
 /backend/todo.db
+
+# nix
+.devenv/
+.direnv/

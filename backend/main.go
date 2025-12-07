@@ -55,6 +55,7 @@ func main() {
 	r.Get("/v1/lpks", srv.listLPKs)
 	r.Get("/v1/lpks/{id}", srv.getLPK)
 	r.Get("/v1/lpks/{id}/download", srv.downloadLPK)
+	r.Delete("/v1/lpks/{id}", srv.deleteLPK)
 
 	httpSrv := &http.Server{
 		Addr:    ":9443",
@@ -334,6 +335,25 @@ func (s *LPKStore) Get(id string) (*LPKMetadata, bool) {
 	return meta, ok
 }
 
+func (s *LPKStore) Delete(id string, uid string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	meta, ok := s.items[id]
+	if !ok {
+		return os.ErrNotExist
+	}
+	if uid != "" && meta.UID != uid {
+		return fmt.Errorf("uid mismatch")
+	}
+	delete(s.items, id)
+	if meta.Path != "" {
+		_ = os.Remove(meta.Path)
+	}
+	return s.db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(bucketLPK).Delete([]byte(id))
+	})
+}
+
 func randomID() (string, error) {
 	var b [16]byte
 	if _, err := rand.Read(b[:]); err != nil {
@@ -427,6 +447,28 @@ func (s *Server) downloadLPK(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.lpk\"", strings.ReplaceAll(meta.Name, "\"", "")))
 	_, _ = io.Copy(w, f)
+}
+
+func (s *Server) deleteLPK(w http.ResponseWriter, r *http.Request) {
+	uid := r.URL.Query().Get("uid")
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "id is required", http.StatusBadRequest)
+		return
+	}
+	if err := s.store.Delete(id, uid); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		if err.Error() == "uid mismatch" {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+		httpError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func buildDownloadURL(r *http.Request, id string) string {

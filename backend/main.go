@@ -37,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("init gateway: %v", err)
 	}
-	store, err := NewLPKStore("./lpks")
+	store, err := NewLPKStore("/lzcapp/var/lpks")
 	if err != nil {
 		log.Fatalf("init lpk store: %v", err)
 	}
@@ -268,12 +268,18 @@ func (s *LPKStore) Save(uid, name, version string, file multipart.File, filename
 	if err != nil {
 		return nil, err
 	}
+	sha := hex.EncodeToString(hash.Sum(nil))
+	if existing := s.findExisting(uid, name, version, sha); existing != nil {
+		_ = out.Close()
+		_ = os.Remove(path)
+		return existing, nil
+	}
 	meta := &LPKMetadata{
 		ID:         id,
 		UID:        uid,
 		Name:       name,
 		Version:    version,
-		SHA256:     hex.EncodeToString(hash.Sum(nil)),
+		SHA256:     sha,
 		Size:       size,
 		Path:       path,
 		UploadedAt: time.Now(),
@@ -282,6 +288,17 @@ func (s *LPKStore) Save(uid, name, version string, file multipart.File, filename
 		return nil, err
 	}
 	return meta, nil
+}
+
+func (s *LPKStore) findExisting(uid, name, version, sha string) *LPKMetadata {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, meta := range s.items {
+		if meta.UID == uid && meta.Name == name && meta.Version == version && meta.SHA256 == sha {
+			return meta
+		}
+	}
+	return nil
 }
 
 func (s *LPKStore) saveMeta(meta *LPKMetadata) error {
@@ -423,5 +440,5 @@ func buildDownloadURL(r *http.Request, id string) string {
 	if host == "" {
 		host = "localhost"
 	}
-	return fmt.Sprintf("%s://%s/v1/lpks/%s/download", scheme, host, id)
+	return fmt.Sprintf("%s://%s/api/v1/lpks/%s/download", scheme, host, id)
 }

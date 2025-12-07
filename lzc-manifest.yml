@@ -1,6 +1,6 @@
 name: Terraform Service
 package: cloud.lazycat.app.terraform-service
-version: 0.0.1
+version: 0.0.2
 description: A Terraform background service to enable provider integration.
 license: https://choosealicense.com/licenses/mit/
 homepage: 
